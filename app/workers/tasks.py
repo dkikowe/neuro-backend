@@ -1,15 +1,40 @@
 import uuid
 from datetime import datetime
 from typing import Optional
+import io
 
+from app.core.database import SessionLocal
+from app.models.upload import Upload
 from app.workers.celery_app import celery_app
 from app.services.ai import generate_image
 from app.services.s3 import upload_fileobj_to_s3, get_file_url
-import io
+
+
+def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str) -> None:
+    """Записать ссылку на готовое изображение в Upload после генерации."""
+    db = SessionLocal()
+    try:
+        upload = db.query(Upload).filter(Upload.id == upload_id).first()
+        if not upload:
+            print(f"[generate_image_task] Upload {upload_id} not found for update")
+            return
+        if user_id and upload.created_by != user_id:
+            print(f"[generate_image_task] Upload {upload_id} does not belong to user {user_id}")
+            return
+
+        upload.after_url = result_url
+        db.add(upload)
+        db.commit()
+        print(f"[generate_image_task] Updated upload {upload_id} with after_url")
+    except Exception as exc:
+        db.rollback()
+        print(f"[generate_image_task] Failed to update upload {upload_id}: {exc}")
+    finally:
+        db.close()
 
 
 @celery_app.task(bind=True, name="generate_image_task")
-def generate_image_task(self, image_url: str, style: str) -> dict:
+def generate_image_task(self, image_url: str, style: str, upload_id: Optional[int] = None, user_id: Optional[int] = None) -> dict:
     """
     Celery task to generate an image using AI API.
     
@@ -49,6 +74,9 @@ def generate_image_task(self, image_url: str, style: str) -> dict:
         
         # Get public URL for the result
         result_url = get_file_url(result_filename)
+
+        if upload_id:
+            _update_upload_after(upload_id, user_id, result_url)
         
         return {
             "status": "success",

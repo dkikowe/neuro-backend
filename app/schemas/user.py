@@ -14,6 +14,7 @@ class UserCreate(UserBase):
 class UserResponse(UserBase):
     id: int
     created_at: datetime
+    generation_count: int
 
     class Config:
         from_attributes = True

@@ -2,6 +2,7 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 from typing import Optional
+from urllib.parse import urlparse
 
 from app.core.config import get_settings
 
@@ -220,4 +221,39 @@ def upload_fileobj_to_s3(file_obj, s3_key: str, content_type: str = 'image/jpeg'
         print(f"Region: {settings.AWS_S3_REGION}")
         print(f"Access Key (first 10): {settings.AWS_ACCESS_KEY_ID[:10]}...")
         raise  # Re-raise to get proper error details
+
+
+def _extract_key_from_url(url: str) -> Optional[str]:
+    """Достать ключ S3 из ссылки вида https://bucket.s3.region.amazonaws.com/key."""
+    if not url:
+        return None
+    parsed = urlparse(url)
+    path = parsed.path.lstrip("/")
+    if not path:
+        return None
+
+    bucket_prefix = f"{settings.AWS_S3_BUCKET_NAME}/"
+    if path.startswith(bucket_prefix):
+        path = path[len(bucket_prefix):]
+    return path or None
+
+
+def delete_file_from_s3(s3_key: str) -> bool:
+    try:
+        s3_client_upload.delete_object(
+            Bucket=settings.AWS_S3_BUCKET_NAME,
+            Key=s3_key,
+        )
+        return True
+    except ClientError as e:
+        print(f"Error deleting file from S3: {e}")
+        return False
+
+
+def delete_file_by_url(url: str) -> bool:
+    key = _extract_key_from_url(url)
+    if not key:
+        print(f"Could not extract S3 key from url: {url}")
+        return False
+    return delete_file_from_s3(key)
 

@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, upload, generate, styles
 from app.core.config import get_settings
-from app.core.database import Base, engine
+from app.core.database import Base, engine, run_simple_migrations
 
 
 settings = get_settings()
@@ -17,21 +17,19 @@ origins = [
     if origin.strip()
 ]
 
-# Allow all origins if "*" is set or if no specific origins provided
-if settings.BACKEND_CORS_ORIGINS == "*" or not origins:
-    allow_origins = ["*"]
-else:
-    allow_origins = origins
-
+# Для полного открытия CORS ставим "*" и отключаем credentials,
+# т.к. wildcard нельзя использовать с allow_credentials=True
+allow_origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allow_origins,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+run_simple_migrations()
 Base.metadata.create_all(bind=engine)
 
 

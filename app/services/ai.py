@@ -3,29 +3,9 @@ import io
 from typing import Optional
 
 from app.core.config import get_settings
+from app.core.styles_catalog import STYLE_PROMPT_MAP, STYLE_PRESET
 
 settings = get_settings()
-
-# Маппинг стилей на style_preset Stability AI
-STYLE_PRESET_MAP = {
-    "anime": "anime",
-    "realistic": "photographic",
-    "cartoon": "comic-book",
-    "digital-art": "digital-art",
-    "fantasy": "fantasy-art",
-    "cinematic": "cinematic",
-    "3d": "3d-model",
-    "pixel": "pixel-art",
-    "neon": "neon-punk",
-    "isometric": "isometric",
-    "low-poly": "low-poly",
-    "line-art": "line-art",
-    "origami": "origami",
-    "tile": "tile-texture",
-    "modeling": "modeling-compound",
-    "analog": "analog-film",
-    "enhance": "enhance",
-}
 
 
 def generate_image(image_url: str, style: str, prompt: Optional[str] = None) -> Optional[bytes]:
@@ -43,20 +23,22 @@ def generate_image(image_url: str, style: str, prompt: Optional[str] = None) -> 
     try:
         if not settings.AI_KEY:
             raise ValueError("AI_KEY не настроен в переменных окружения")
-        
-        # Получаем style_preset из маппинга или используем style как есть
-        style_preset = STYLE_PRESET_MAP.get(style.lower(), style.lower())
-        
+
         # Формируем prompt если не передан
         if not prompt:
-            prompt = f"High quality image in {style} style, detailed, professional"
+            style_prompt = STYLE_PROMPT_MAP.get(style.lower())
+            base_prompt = "High quality interior visualization, detailed, professional lighting"
+            if style_prompt:
+                prompt = f"{base_prompt}. Style: {style_prompt}"
+            else:
+                prompt = f"{base_prompt}. Style: {style}"
         
         # Подготавливаем multipart/form-data для запроса
         # В httpx все поля multipart должны быть в files
         files = {
             "prompt": (None, prompt),
             "output_format": (None, "webp"),
-            "style_preset": (None, style_preset),
+            "style_preset": (None, STYLE_PRESET),
         }
         
         # Если передан image_url, загружаем изображение и используем для image-to-image

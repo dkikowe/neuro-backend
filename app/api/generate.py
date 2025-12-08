@@ -1,9 +1,14 @@
+from typing import Annotated, Optional
+
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional
 from celery.result import AsyncResult
+from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.database import get_db
+from app.core.styles_catalog import STYLE_IDS
+from app.models.upload import Upload
 from app.models.user import User
 from app.workers.tasks import generate_image_task
 from app.workers.celery_app import celery_app
@@ -13,7 +18,11 @@ router = APIRouter(prefix="/generate", tags=["generate"])
 
 class GenerateRequest(BaseModel):
     image_url: HttpUrl = Field(..., description="URL of the input image")
-    style: str = Field(..., description="Style to apply (e.g., 'anime', 'realistic', 'cartoon')")
+    style: str = Field(..., description="Style id, см. /styles")
+    upload_id: Optional[int] = Field(
+        None,
+        description="ID сохраненного аплоада, чтобы записать after-изображение",
+    )
 
 
 class GenerateResponse(BaseModel):
@@ -29,7 +38,8 @@ class TaskStatusResponse(BaseModel):
 @router.post("", response_model=GenerateResponse, status_code=status.HTTP_202_ACCEPTED)
 def create_generate_task(
     request: GenerateRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
 ) -> GenerateResponse:
     """
     Create a task for generating an image with AI.
@@ -42,10 +52,43 @@ def create_generate_task(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Style is required"
         )
-    
-    # Queue the task
-    task = generate_image_task.delay(str(request.image_url), request.style)
-    
+
+    style_id = request.style.lower()
+    if style_id not in STYLE_IDS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported style. Проверьте список в /styles",
+        )
+
+    # Проверяем, что upload принадлежит пользователю (если указан)
+    if request.upload_id is not None:
+        upload = (
+            db.query(Upload)
+            .filter(
+                Upload.id == request.upload_id,
+                Upload.created_by == current_user.id,
+            )
+            .first()
+        )
+        if not upload:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Upload not found",
+            )
+
+    # Обновляем счетчик генераций пользователя
+    current_user.generation_count = (current_user.generation_count or 0) + 1
+    db.add(current_user)
+    db.commit()
+
+    # Queue the task (пробрасываем upload_id чтобы записать after)
+    task = generate_image_task.delay(
+        str(request.image_url),
+        style_id,
+        request.upload_id,
+        current_user.id,
+    )
+
     return GenerateResponse(task_id=task.id)
 
 
