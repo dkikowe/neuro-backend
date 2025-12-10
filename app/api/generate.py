@@ -75,6 +75,9 @@ def create_generate_task(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Upload not found",
             )
+        upload.style = style_id
+        db.add(upload)
+        db.commit()
 
     # Обновляем счетчик генераций пользователя
     current_user.generation_count = (current_user.generation_count or 0) + 1

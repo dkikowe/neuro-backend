@@ -12,6 +12,7 @@ class Upload(Base):
     id = Column(Integer, primary_key=True, index=True)
     before_url = Column(String(512), nullable=False)
     after_url = Column(String(512), nullable=True)
+    style = Column(String(64), nullable=True)
     created_by = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

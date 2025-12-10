@@ -73,6 +73,7 @@ class UploadResponse(BaseModel):
     upload_id: int = Field(..., description="ID записи аплоада в базе")
     before: str = Field(..., description="Ссылка на исходную картинку")
     after: Optional[str] = Field(None, description="Ссылка на сгенерированную картинку, если есть")
+    style: Optional[str] = Field(None, description="Стиль, примененный при генерации")
 
     class Config:
         populate_by_name = True
@@ -82,6 +83,7 @@ class UploadRecord(BaseModel):
     id: int
     before: str = Field(..., alias="before_url")
     after: Optional[str] = Field(None, alias="after_url")
+    style: Optional[str]
     created_by: int
     created_at: datetime
 
@@ -225,6 +227,7 @@ async def upload_file(
             upload_id=upload_record.id,
             before=upload_record.before_url,
             after=upload_record.after_url,
+            style=upload_record.style,
         )
         
     except HTTPException:

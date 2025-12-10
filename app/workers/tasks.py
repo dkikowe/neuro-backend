@@ -10,7 +10,7 @@ from app.services.ai import generate_image
 from app.services.s3 import upload_fileobj_to_s3, get_file_url
 
 
-def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str) -> None:
+def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str, style: Optional[str]) -> None:
     """Записать ссылку на готовое изображение в Upload после генерации."""
     db = SessionLocal()
     try:
@@ -23,6 +23,8 @@ def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str
             return
 
         upload.after_url = result_url
+        if style:
+            upload.style = style
         db.add(upload)
         db.commit()
         print(f"[generate_image_task] Updated upload {upload_id} with after_url")
@@ -82,7 +84,7 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         result_url = get_file_url(result_filename)
 
         if upload_id:
-            _update_upload_after(upload_id, user_id, result_url)
+            _update_upload_after(upload_id, user_id, result_url, style)
         
         return {
             "status": "success",

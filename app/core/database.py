@@ -43,6 +43,7 @@ def run_simple_migrations() -> None:
             id SERIAL PRIMARY KEY,
             before_url VARCHAR(512) NOT NULL,
             after_url VARCHAR(512),
+            style VARCHAR(64),
             created_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
             created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW())
         )
@@ -50,6 +51,10 @@ def run_simple_migrations() -> None:
         # Индексы для выборок по пользователю и id
         "CREATE INDEX IF NOT EXISTS ix_uploads_created_by ON uploads (created_by)",
         "CREATE INDEX IF NOT EXISTS ix_uploads_id ON uploads (id)",
+        """
+        ALTER TABLE uploads
+        ADD COLUMN IF NOT EXISTS style VARCHAR(64)
+        """,
     ]
 
     with engine.begin() as conn:
