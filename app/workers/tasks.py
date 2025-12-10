@@ -49,7 +49,7 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         print(f"Starting image generation task: image_url={image_url}, style={style}")
         
         # Generate image (synchronous call)
-        image_bytes = generate_image(image_url, style)
+        image_bytes, mime_type = generate_image(image_url, style)
         
         if image_bytes is None:
             raise Exception("Failed to generate image: generate_image returned None")
@@ -59,14 +59,20 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         # Generate unique filename for result
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         unique_id = str(uuid.uuid4())[:8]
-        result_filename = f"generated/{style}/{timestamp}_{unique_id}.webp"
+        ext_map = {
+            "image/png": "png",
+            "image/jpeg": "jpg",
+            "image/webp": "webp",
+        }
+        ext = ext_map.get(mime_type.lower(), "png")
+        result_filename = f"generated/{style}/{timestamp}_{unique_id}.{ext}"
         
         # Upload result to S3
         image_file_obj = io.BytesIO(image_bytes)
         upload_success = upload_fileobj_to_s3(
             image_file_obj,
             result_filename,
-            content_type="image/webp"
+            content_type=mime_type
         )
         
         if not upload_success:
@@ -87,10 +93,5 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
     except Exception as e:
         error_msg = str(e)
         print(f"Error in generate_image_task: {error_msg}")
-        # Update task state with error
-        self.update_state(
-            state="FAILURE",
-            meta={"error": error_msg}
-        )
         raise Exception(error_msg) from e
 

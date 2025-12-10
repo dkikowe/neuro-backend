@@ -11,4 +11,5 @@ boto3
 celery[redis]
 redis
 httpx
+google-genai
 

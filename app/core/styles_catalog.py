@@ -13,7 +13,11 @@ STYLE_CATALOG: List[Dict[str, str]] = [
         "id": "scandi",
         "name": "Скандинавский",
         "description": "Светлое дерево, белые стены, уютный минимализм",
-        "prompt": "scandinavian interior, light wood, white walls, cozy minimal decor, natural light, photorealistic render",
+        "prompt": 
+  "scandinavian interior, light birch wood, white walls, "
+  "simple functional furniture, natural daylight, hygge atmosphere, "
+  "photorealistic render",
+
     },
     {
         "id": "loft",
@@ -25,7 +29,11 @@ STYLE_CATALOG: List[Dict[str, str]] = [
         "id": "minimalist",
         "name": "Минимализм",
         "description": "Минимум декора и максимум воздуха",
-        "prompt": "minimalist interior, decluttered space, large windows, monochrome palette, clean furniture, photorealistic render",
+        "prompt": 
+  "strict minimalist interior, almost empty space, hidden storage, "
+  "matte surfaces, monochrome palette, sharp geometry, "
+  "photorealistic render",
+
     },
     {
         "id": "classic",
@@ -37,13 +45,21 @@ STYLE_CATALOG: List[Dict[str, str]] = [
         "id": "japandi",
         "name": "Япанди",
         "description": "Японский минимализм + скандинавский уют",
-        "prompt": "japandi interior, natural textures, low furniture, calm earthy tones, soft lighting, photorealistic render",
+        "prompt": 
+  "japandi interior, japanese minimalism, low profile furniture, "
+  "natural wood and stone textures, calm earthy tones, warm soft lighting, "
+  "clean uncluttered space, photorealistic render",
+
+
     },
     {
         "id": "luxury-modern",
         "name": "Современная роскошь",
         "description": "Премиальные материалы, латунь и подсветка",
-        "prompt": "luxury modern interior, marble surfaces, brass accents, ambient lighting, statement furniture, photorealistic render",
+        "prompt": "luxury modern interior, contemporary design, marble surfaces, brass accents, dark accents, ambient lighting, no classic mouldings, photorealistic render",
+  
+
+
     },
     {
         "id": "art-deco",
