@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     APP_NAME: str = "AI Service API"
     APP_ENV: str = "production"
-    APP_URL: str = "http://localhost:3000"
+    APP_URL: str = "https://neuro-front.vercel.app"
 
     BACKEND_CORS_ORIGINS: str = "*"  # comma-separated list
 
