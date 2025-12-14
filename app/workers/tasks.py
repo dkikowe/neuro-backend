@@ -51,14 +51,8 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
     try:
         print(f"Starting image generation task: image_url={image_url}, style={style}")
         
-        # Generate image (synchronous call)
+        # Generate image (synchronous call) — без HD/upscale на этом этапе
         image_bytes, mime_type = generate_image(image_url, style)
-
-        # Optional upscale with Stability (returns original on failure/missing key)
-        image_bytes, mime_type = upscale_image_fast(
-            image_bytes,
-            output_format="webp" if mime_type.lower().endswith("webp") else "png",
-        )
         
         if image_bytes is None:
             raise Exception("Failed to generate image: generate_image returned None")
