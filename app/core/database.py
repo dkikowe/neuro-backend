@@ -39,6 +39,30 @@ def run_simple_migrations() -> None:
         ADD COLUMN IF NOT EXISTS generation_count INTEGER NOT NULL DEFAULT 0
         """,
         """
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS status VARCHAR(64) NOT NULL DEFAULT 'active'
+        """,
+        """
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS email_verification_token_hash VARCHAR(128)
+        """,
+        """
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS email_verification_expires_at TIMESTAMP WITHOUT TIME ZONE
+        """,
+        """
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS last_verification_sent_at TIMESTAMP WITHOUT TIME ZONE
+        """,
+        """
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS reset_token_hash VARCHAR(128)
+        """,
+        """
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS reset_token_expires_at TIMESTAMP WITHOUT TIME ZONE
+        """,
+        """
         CREATE TABLE IF NOT EXISTS uploads (
             id SERIAL PRIMARY KEY,
             before_url VARCHAR(512) NOT NULL,

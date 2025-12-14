@@ -15,6 +15,7 @@ class UserResponse(UserBase):
     id: int
     created_at: datetime
     generation_count: int
+    status: str
 
     class Config:
         from_attributes = True

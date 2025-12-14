@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     APP_NAME: str = "AI Service API"
     APP_ENV: str = "production"
+    APP_URL: str = "http://localhost:3000"
 
     BACKEND_CORS_ORIGINS: str = "*"  # comma-separated list
 
@@ -33,6 +34,15 @@ class Settings(BaseSettings):
     # Stability AI Configuration
     AI_KEY: Optional[str] = None
     STABILITY_AI_KEY: Optional[str] = None
+
+    # SMTP
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM: Optional[str] = None
+    SMTP_USE_TLS: bool = True
+    SMTP_USE_SSL: bool = False
 
     model_config = SettingsConfigDict(
         env_file=".env",

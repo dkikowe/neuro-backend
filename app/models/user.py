@@ -15,6 +15,13 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     generation_count = Column(Integer, default=0, nullable=False)
 
+    status = Column(String(64), default="active", nullable=False)
+    email_verification_token_hash = Column(String(128), nullable=True)
+    email_verification_expires_at = Column(DateTime, nullable=True)
+    last_verification_sent_at = Column(DateTime, nullable=True)
+    reset_token_hash = Column(String(128), nullable=True)
+    reset_token_expires_at = Column(DateTime, nullable=True)
+
     uploads = relationship(
         "Upload",
         back_populates="user",

@@ -50,14 +50,14 @@ def create_generate_task(
     if not request.style:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Style is required"
+            detail="Стиль обязателен"
         )
 
     style_id = request.style.lower()
     if style_id not in STYLE_IDS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Unsupported style. Проверьте список в /styles",
+            detail="Неподдерживаемый стиль. Проверьте список в /styles",
         )
 
     # Проверяем, что upload принадлежит пользователю (если указан)
@@ -73,7 +73,7 @@ def create_generate_task(
         if not upload:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Upload not found",
+                detail="Аплоад не найден",
             )
         upload.style = style_id
         db.add(upload)

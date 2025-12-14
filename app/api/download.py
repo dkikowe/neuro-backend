@@ -15,14 +15,14 @@ def download_file(key: str = Query(..., description="S3 key файла")) -> Res
     if not key or key.strip() == "":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="key is required",
+            detail="Параметр key обязателен",
         )
 
     file_bytes, content_type = download_file_from_s3(key)
     if file_bytes is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="File not found",
+            detail="Файл не найден",
         )
 
     filename = key.split("/")[-1] if "/" in key else key

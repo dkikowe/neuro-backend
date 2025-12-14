@@ -120,7 +120,7 @@ def create_presigned_url(
     if not upload_url:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to generate presigned upload URL"
+            detail="Не удалось сгенерировать presigned URL для загрузки"
         )
     
     # Generate file URL (public or presigned)
@@ -164,7 +164,7 @@ async def upload_file(
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Filename is required"
+            detail="Имя файла обязательно"
         )
     
     # Normalize filename
@@ -195,7 +195,7 @@ async def upload_file(
         if not file_content:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File is empty"
+                detail="Файл пустой"
             )
         
         # Create file-like object from bytes
@@ -242,7 +242,7 @@ async def upload_file(
         print(f"Traceback: {error_trace}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"S3 upload error: {error_code} - {error_message}"
+            detail=f"Ошибка S3 загрузки: {error_code} - {error_message}"
         )
     except Exception as e:
         # Log full traceback for debugging
@@ -250,7 +250,7 @@ async def upload_file(
         print(f"Error uploading file: {error_trace}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error uploading file: {str(e)}"
+            detail=f"Ошибка загрузки файла: {str(e)}"
         )
 
 
@@ -292,7 +292,7 @@ def delete_upload(
     if not upload:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Upload not found",
+            detail="Аплоад не найден",
         )
 
     # Чистим S3 (если ссылки валидные)
