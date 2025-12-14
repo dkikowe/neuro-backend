@@ -257,3 +257,19 @@ def delete_file_by_url(url: str) -> bool:
         return False
     return delete_file_from_s3(key)
 
+
+def download_file_from_s3(s3_key: str) -> tuple[Optional[bytes], Optional[str]]:
+    """
+    Download a file from S3 by key. Returns (bytes, content_type) or (None, None) if not found.
+    """
+    try:
+        obj = s3_client.get_object(Bucket=settings.AWS_S3_BUCKET_NAME, Key=s3_key)
+        data = obj["Body"].read()
+        content_type = obj.get("ContentType", "image/png")
+        return data, content_type
+    except ClientError as e:
+        if e.response.get("Error", {}).get("Code") == "NoSuchKey":
+            return None, None
+        print(f"Error downloading file from S3: {e}")
+        return None, None
+

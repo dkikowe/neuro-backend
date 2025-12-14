@@ -33,8 +33,8 @@ def generate_image(image_url: str, style: str, prompt: Optional[str] = None) -> 
             style_prompt = STYLE_PROMPT_MAP.get(style.lower())
             base_prompt = (
                 "High quality interior visualization, detailed, professional lighting. "
-                "Do not add new furniture or decor, keep existing layout and background; "
-                "only restyle materials and lighting."
+                "Do not add or remove furniture, decor, windows, doors or openings; "
+                "preserve existing layout, walls and background; only restyle materials and lighting."
             )
             if style_prompt:
                 prompt = f"{base_prompt}. Style: {style_prompt}"

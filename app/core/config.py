@@ -32,6 +32,7 @@ class Settings(BaseSettings):
 
     # Stability AI Configuration
     AI_KEY: Optional[str] = None
+    STABILITY_AI_KEY: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

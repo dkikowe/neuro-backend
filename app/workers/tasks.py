@@ -8,6 +8,7 @@ from app.models.upload import Upload
 from app.workers.celery_app import celery_app
 from app.services.ai import generate_image
 from app.services.s3 import upload_fileobj_to_s3, get_file_url
+from app.services.upscale import upscale_image_fast
 
 
 def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str, style: Optional[str]) -> None:
@@ -52,6 +53,12 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         
         # Generate image (synchronous call)
         image_bytes, mime_type = generate_image(image_url, style)
+
+        # Optional upscale with Stability (returns original on failure/missing key)
+        image_bytes, mime_type = upscale_image_fast(
+            image_bytes,
+            output_format="webp" if mime_type.lower().endswith("webp") else "png",
+        )
         
         if image_bytes is None:
             raise Exception("Failed to generate image: generate_image returned None")
@@ -71,6 +78,7 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         
         # Upload result to S3
         image_file_obj = io.BytesIO(image_bytes)
+        print(f"Uploading to S3: key={result_filename}, mime={mime_type}, bytes={len(image_bytes)}")
         upload_success = upload_fileobj_to_s3(
             image_file_obj,
             result_filename,
@@ -80,6 +88,8 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         if not upload_success:
             raise Exception("Failed to upload generated image to S3")
         
+        print(f"Uploaded to S3 successfully: key={result_filename}")
+
         # Get public URL for the result
         result_url = get_file_url(result_filename)
 
