@@ -1,18 +1,22 @@
 import httpx
 import io
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from google import genai
 from google.genai import types
 
 from app.core.config import get_settings
-from app.core.styles_catalog import STYLE_PROMPT_MAP
+from app.core.styles_catalog import build_style_prompt
 
 settings = get_settings()
 client = genai.Client(api_key=settings.AI_KEY)
 
 
-def generate_image(image_url: str, style: str, prompt: Optional[str] = None) -> Tuple[bytes, str]:
+def generate_image(
+    image_url: str,
+    style: str,
+    prompt: Optional[str] = None,
+) -> Tuple[bytes, str, Optional[Dict[str, Optional[str]]]]:
     """
     Generate an image using Gemini based on input image and style.
     
@@ -29,17 +33,33 @@ def generate_image(image_url: str, style: str, prompt: Optional[str] = None) -> 
             raise ValueError("AI_KEY не настроен в переменных окружения")
 
         # Формируем prompt если не передан
+        style_meta: Optional[Dict[str, Optional[str]]] = None
+
+        style_prompt, style_meta = build_style_prompt(style.lower())
+
         if not prompt:
-            style_prompt = STYLE_PROMPT_MAP.get(style.lower())
             base_prompt = (
                 "High quality interior visualization, detailed, professional lighting. "
-                "Do not add or remove furniture, decor, windows, doors or openings; "
-                "preserve existing layout, walls and background; only restyle materials and lighting."
+                "Do not change room layout: keep all walls, windows, doors and openings in their original places; "
+                "no new openings or relocated windows/doors. "
+                "Do not add or remove furniture or decor; only restyle materials, finishes and lighting."
             )
             if style_prompt:
-                prompt = f"{base_prompt}. Style: {style_prompt}"
+                prompt = f"{base_prompt} {style_prompt}"
             else:
-                prompt = f"{base_prompt}. Style: {style}"
+                prompt = f"{base_prompt} Style: {style}"
+
+        if style_meta:
+            print(
+                "[generate_image] style_meta",
+                {
+                    "style_id": style_meta.get("style_id"),
+                    "furniture": style_meta.get("furniture"),
+                    "walls": style_meta.get("walls"),
+                    "lighting": style_meta.get("lighting"),
+                    "camera": style_meta.get("camera"),
+                },
+            )
 
         # Загружаем исходное изображение
         with httpx.Client() as http_client:
@@ -65,13 +85,13 @@ def generate_image(image_url: str, style: str, prompt: Optional[str] = None) -> 
                 inline = part.inline_data
                 data = inline.data if hasattr(inline, "data") else None
                 if data:
-                    return data, inline.mime_type or "image/png"
+                    return data, inline.mime_type or "image/png", style_meta
                 # Если as_image доступен, пробуем его
                 if hasattr(part, "as_image"):
                     img = part.as_image()
                     buf = io.BytesIO()
                     img.save(buf, format="PNG")
-                    return buf.getvalue(), "image/png"
+                    return buf.getvalue(), "image/png", style_meta
         raise Exception("Gemini не вернул изображение")
 
     except httpx.HTTPError as e:

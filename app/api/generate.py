@@ -32,6 +32,9 @@ class GenerateResponse(BaseModel):
 class TaskStatusResponse(BaseModel):
     status: str = Field(..., description="Task status: PENDING, STARTED, SUCCESS, FAILURE")
     result_url: Optional[str] = Field(None, description="URL of generated image (if status is SUCCESS)")
+    filename: Optional[str] = Field(None, description="Filename of generated image in storage")
+    style_id: Optional[str] = Field(None, description="Style id that was applied")
+    style_meta: Optional[dict] = Field(None, description="Selected style variants (furniture/walls/lighting/camera)")
     error: Optional[str] = Field(None, description="Error message (if status is FAILURE)")
 
 
@@ -114,10 +117,13 @@ def get_task_status(
         response = TaskStatusResponse(status="STARTED")
     elif task_result.state == "SUCCESS":
         result = task_result.result
-        if isinstance(result, dict) and "result_url" in result:
+        if isinstance(result, dict):
             response = TaskStatusResponse(
                 status="SUCCESS",
-                result_url=result["result_url"]
+                result_url=result.get("result_url"),
+                filename=result.get("filename"),
+                style_id=result.get("style_id"),
+                style_meta=result.get("style_meta"),
             )
         else:
             response = TaskStatusResponse(

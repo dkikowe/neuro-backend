@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Dict
 import io
 
 from app.core.database import SessionLocal
@@ -52,7 +52,7 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         print(f"Starting image generation task: image_url={image_url}, style={style}")
         
         # Generate image (synchronous call) — без HD/upscale на этом этапе
-        image_bytes, mime_type = generate_image(image_url, style)
+        image_bytes, mime_type, style_meta = generate_image(image_url, style)
         
         if image_bytes is None:
             raise Exception("Failed to generate image: generate_image returned None")
@@ -93,7 +93,9 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         return {
             "status": "success",
             "result_url": result_url,
-            "filename": result_filename
+            "filename": result_filename,
+            "style_id": style,
+            "style_meta": style_meta,
         }
         
     except Exception as e:
