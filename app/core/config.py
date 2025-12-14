@@ -43,6 +43,8 @@ class Settings(BaseSettings):
     SMTP_FROM: Optional[str] = None
     SMTP_USE_TLS: bool = True
     SMTP_USE_SSL: bool = False
+    RESEND_API_KEY: Optional[str] = None
+    RESEND_FROM: Optional[str] = None
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -12,4 +12,5 @@ celery[redis]
 redis
 httpx
 google-genai
+resend
 
