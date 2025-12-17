@@ -1,357 +1,314 @@
 import random
 from typing import Dict, List, Optional, Tuple
 
+# Глобальные подсказки для всех стилей
+GLOBAL_BASE_PROMPT = (
+    "interior redesign of the same room using the input photo, this is an interior redesign not a new room, "
+    "keep original spatial layout and room boundaries, architecture must remain exactly the same, "
+    "walls ceiling floor doors and windows are fixed, do not change wall positions, do not move or add windows, "
+    "do not move or add doors or passages, no architectural creativity, preserve original window and door placement, "
+    "preserve room proportions and geometry, same camera position and perspective, real-world furniture proportions, "
+    "commercially available furniture, balanced furniture density, shot on a real camera, 28–35mm lens, interior photography, "
+    "architectural digest style, natural color grading, true-to-life colors, realistic materials and textures, "
+    "subtle surface imperfections, structural consistency, strict structural preservation"
+)
+
+GLOBAL_NEGATIVE_PROMPT = (
+    "extra windows, new windows, moved windows, additional doors, new doorways, arches, archways, portals, "
+    "hallway creation, room expansion, merged rooms, altered architecture, distorted geometry, unrealistic proportions, "
+    "fisheye, ultra wide, extreme perspective, oversaturated colors, CGI look, 3D render look, clutter, messy composition"
+)
+
 # Справочник доступных стилей генерации (интерьерная тематика)
 # id используется в API и генерации, name/description идут в выдачу /styles
 STYLE_CATALOG: List[Dict[str, object]] = [
     {
-        "id": "modern",
-        "name": "Современный",
-        "description": "Чистые линии, нейтральные оттенки и акцентная подсветка",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "modern interior design, clean lines, neutral palette, premium furniture, natural materials, soft indirect LED lighting, "
-            "photorealistic textures, high-end architectural interior photography, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls, missing windows, extra rooms"
-        ),
+        "id": "soft-minimal",
+        "name": "Софт-минимализм",
+        "description": "Светлый минимализм с мягкими формами и спокойным светом",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. soft minimal interior design, ultra light palette, creamy whites, rounded furniture, soft upholstery, minimal decor, diffused daylight, airy calm atmosphere",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "sleek modular sofa, marble coffee table, minimal shelving",
-                "fabric sofa with rounded edges, wood coffee table, abstract wall art",
-                "low-profile modern couch, metal floor lamp, designer armchair",
+                "rounded modular sofa, low oak coffee table, soft boucle lounge chair",
+                "slim metal console, light fabric sofa, sculptural side table",
+                "low-profile sectional, minimal shelves, plush area rug"
             ],
             "walls": [
-                "smooth grey walls, matte finish",
-                "warm beige walls with subtle plaster texture",
-                "accent wall with vertical wooden slats",
+                "warm white limewash walls, smooth matte finish",
+                "very light beige plaster texture",
+                "soft off-white paint with subtle sheen"
             ],
             "lighting": [
-                "diffused natural daylight, soft shadows",
-                "warm evening ambient lighting, cozy atmosphere",
-                "neutral LED ceiling spots with soft indirect glow",
+                "diffused north-facing daylight, soft shadows",
+                "hidden cove lighting with warm temperature",
+                "neutral ceiling spots with dimmed output"
             ],
             "camera": [
-                "wide-angle shot 18mm, interior photography",
-                "35mm natural perspective, architectural photo",
-                "angled corner perspective for depth, same camera position",
+                "35mm calm frontal shot",
+                "32mm slight angle for depth",
+                "30mm centered symmetrical framing"
             ],
         },
     },
     {
-        "id": "scandi",
-        "name": "Скандинавский",
-        "description": "Светлое дерево, белые стены и уютный минимализм",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "scandinavian interior design, birch wood furniture, white matte walls, cozy hygge textiles, airy minimal design, natural daylight, "
-            "photorealistic render, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls"
-        ),
+        "id": "warm-modern",
+        "name": "Тёплый модерн",
+        "description": "Тёплый современный стиль с ощущением уюта и баланса",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. warm modern interior, warm beige and caramel tones, natural wood and stone, tactile fabrics, elegant modern furniture, soft warm lighting, cozy calm mood",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "light fabric sofa, knitted blanket, wooden coffee table, simple shelving",
-                "rounded scandinavian armchair, woven textures, minimal cabinet",
-                "linen curtains, soft pastel pillows, light wood sideboard",
+                "fabric sofa in warm beige, walnut coffee table, woven pouf",
+                "caramel-toned armchairs, travertine side table, soft rug",
+                "modern wood console, linen sofa, bronze floor lamp"
             ],
             "walls": [
-                "pure white matte walls",
-                "soft warm white with subtle texture",
-                "pastel sage accent wall, minimal pattern",
+                "warm beige paint, soft matte",
+                "light sand-toned plaster",
+                "neutral wall with thin wood slats accent"
             ],
             "lighting": [
-                "bright natural daylight through large windows",
-                "soft warm lamp lighting for hygge mood",
-                "overcast diffused daylight, gentle shadows",
+                "warm indirect ceiling wash",
+                "table lamps with fabric shades, low intensity",
+                "window daylight with light curtains, gentle shadows"
             ],
             "camera": [
-                "wide-angle daylight interior shot 18mm",
-                "35mm interior photo, calm centered framing",
-                "corner perspective with depth, same camera position",
+                "35mm eye-level interior shot",
+                "32mm angle capturing seating group",
+                "30mm centered view with balanced composition"
             ],
         },
     },
     {
-        "id": "loft",
-        "name": "Лофт",
-        "description": "Бетон, кирпич, металл и индустриальная атмосфера",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "industrial loft interior design, exposed brick, concrete textures, black metal accents, raw wood surfaces, photorealistic gritty textures, "
-            "strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls"
-        ),
+        "id": "neo-japandi",
+        "name": "Нео-Япанди",
+        "description": "Современный Japandi с дисциплиной и дзен-балансом",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. neo japandi interior, japanese minimalism with scandinavian precision, low profile furniture, matte wood, stone textures, controlled warm lighting, disciplined composition",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "vintage leather sofa, metal coffee table, industrial shelves",
-                "raw wood dining table, black steel frames, minimal decor",
-                "industrial armchair, arc floor lamp, reclaimed wood console",
+                "low oak platform sofa, linen cushions, shoji-inspired cabinet",
+                "ash wood bench, stone side table, paper lamp",
+                "minimal tatami-inspired rug, low coffee table, woven pouf"
             ],
             "walls": [
-                "exposed red brick accent wall",
-                "raw concrete walls with subtle stains",
-                "dark matte paint with metal details",
+                "soft greige plaster with subtle texture",
+                "light oak panel accent, matte finish",
+                "neutral off-white walls, calm tone"
             ],
             "lighting": [
-                "dramatic high-contrast lighting, moody shadows",
-                "cold industrial LED strip lighting",
-                "warm Edison bulbs with spot highlights",
+                "controlled warm directional sconces",
+                "soft window daylight filtered by linen curtains",
+                "hidden floor washer lights, low level"
             ],
             "camera": [
-                "ultra wide-angle interior shot 18mm",
-                "35mm gritty loft photography",
-                "dynamic corner shot, same camera position",
+                "32mm calm angle showing depth",
+                "35mm straight-on disciplined framing",
+                "30mm slight diagonal with leading lines"
             ],
         },
     },
     {
-        "id": "minimalist",
-        "name": "Минимализм",
-        "description": "Минимум декора и максимум воздуха",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "strict minimalist interior design, monochrome palette, hidden storage, open breathable space, matte textures, "
-            "ultra-clean lines, photorealistic modern minimalism, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls, clutter, messy decor"
-        ),
+        "id": "organic-modern",
+        "name": "Органичный модерн",
+        "description": "Природные формы и биоморфный современный дизайн",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. organic modern interior, sculptural furniture, soft curves, natural stone and wood, earthy tones, organic flow, soft shadows, calm premium atmosphere",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
-            "furniture": [
-                "low-profile sofa, no visible decor, minimal coffee table",
-                "floating shelves, pure geometric forms, hidden storage",
-                "minimal round table, slim chairs, clean surfaces",
+                "furniture": [
+                "sculptural boucle sofa, pebble coffee table, curved sideboard",
+                "organic wood dining table with rounded edges, soft leather chairs",
+                "stone pedestal side table, curved lounge chair, wool rug"
             ],
             "walls": [
-                "pure white matte walls",
-                "soft light grey walls, subtle texture",
-                "monochrome warm beige minimal finish",
+                "warm clay-toned plaster with soft variation",
+                "light taupe microcement, matte",
+                "pale sand paint with subtle movement"
             ],
             "lighting": [
-                "clean diffused daylight, soft shadows",
-                "soft indirect LED wall lighting",
-                "neutral bright ceiling lighting, minimal fixtures",
+                "soft bounced light from wall washers",
+                "warm dimmable pendants with frosted glass",
+                "natural daylight with sheer curtains, gentle falloff"
             ],
             "camera": [
-                "symmetrical centered shot, architectural minimalism",
-                "wide-angle emphasizing empty space 18mm",
-                "side perspective highlighting geometry, same camera position",
+                "32mm angle highlighting curves",
+                "35mm balanced composition, eye level",
+                "30mm slight corner view for flow"
             ],
         },
     },
     {
-        "id": "classic",
-        "name": "Классический",
-        "description": "Молдинги, симметрия и благородные материалы",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "classic interior design, wall mouldings, elegant symmetry, marble and wood materials, premium furniture, soft ambient lighting, "
-            "photorealistic elegant atmosphere, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls, modern industrial pipes"
-        ),
+        "id": "wabi-sabi-modern",
+        "name": "Ваби-саби модерн",
+        "description": "Современный wabi-sabi с фактурой и глубиной",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. wabi sabi modern interior, textured plaster walls, imperfect surfaces, muted earth tones, aged wood, poetic minimalism, moody natural light",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "velvet sofa, carved wood table, subtle gold accents",
-                "classic armchairs, elegant console table, framed art",
-                "traditional sofa set, marble-top side tables, refined decor",
+                "aged wood bench, linen cushions, ceramic decor",
+                "low sofa in muted linen, rough-hewn coffee table",
+                "stone stool, vintage sideboard, woven rug"
             ],
             "walls": [
-                "cream walls with decorative mouldings",
-                "light pastel walls with classic panels",
-                "soft beige walls with elegant trim and pilasters",
+                "hand-troweled clay plaster, visible texture",
+                "warm greige limewash with patina",
+                "soft earth-toned paint with variation"
             ],
             "lighting": [
-                "warm chandelier lighting, soft glow",
-                "classic wall sconces with warm light",
-                "soft golden ambient lighting, refined shadows",
+                "moody side light, natural shadows",
+                "paper lantern diffused glow",
+                "narrow beam spot highlighting texture"
             ],
             "camera": [
-                "symmetrical classical view, centered framing",
-                "wide-angle 18mm capturing full layout",
-                "slightly elevated perspective, same camera position",
+                "35mm intimate eye-level view",
+                "32mm diagonal showing texture depth",
+                "30mm calm centered frame"
             ],
         },
     },
     {
-        "id": "japandi",
-        "name": "Япанди",
-        "description": "Японский минимализм и скандинавский уют",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "japandi interior design, japanese minimalism and scandinavian calm, natural wood and stone textures, low-profile furniture, "
-            "soft earthy tones, calm zen atmosphere, uncluttered space, photorealistic render, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls, clutter"
-        ),
+        "id": "neo-scandinavian",
+        "name": "Нео-скандинавский",
+        "description": "Чистый и мягкий скандинавский стиль нового поколения",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. neo scandinavian interior, light oak wood, soft gray and white palette, functional furniture, clean geometry, abundant natural daylight",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "low japanese-style table, linen sofa, minimal decor",
-                "natural wood bench with soft cushions, simple shelving",
-                "bamboo shelving, stone vase decor, low profile seating",
+                "light oak dining table, soft fabric chairs, minimal sideboard",
+                "gray fabric sofa, pale wood coffee table, simple shelves",
+                "linen curtains, pastel cushions, oak console"
             ],
             "walls": [
-                "warm earthy beige walls, soft plaster texture",
-                "neutral off-white with subtle wabi-sabi imperfections",
-                "light wood panel accent, natural textures",
+                "bright white matte walls",
+                "very light gray paint, smooth",
+                "white walls with subtle oak trim detail"
             ],
             "lighting": [
-                "soft warm natural daylight, gentle shadows",
-                "diffused evening light for zen mood",
-                "soft indirect lighting, calm atmosphere",
+                "abundant daylight through sheer curtains",
+                "neutral ceiling spots, low intensity",
+                "floor lamp with soft white shade"
             ],
             "camera": [
-                "calm centered zen shot, 35mm interior photo",
-                "wide-angle natural perspective 18mm",
-                "minimal corner view with depth, same camera position",
+                "35mm airy front view",
+                "32mm corner angle to show depth",
+                "30mm centered composition, calm"
             ],
         },
     },
     {
-        "id": "luxury-modern",
-        "name": "Современная роскошь",
-        "description": "Мрамор, латунь и премиальный свет без классических элементов",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "luxury modern interior design, marble surfaces, brass accents, premium furniture, rich textures, soft golden ambient lighting, "
-            "cinematic moody shadows, high-end architectural interior photography, no classic mouldings, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls, classic mouldings, ornate classic decor"
-        ),
+        "id": "monochrome-premium",
+        "name": "Премиальный монохром",
+        "description": "Премиальный монохром с архитектурным светом",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. monochrome premium interior, grayscale palette, tonal design, luxury materials, deep shadows, soft highlights, cinematic lighting, minimalist composition",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "premium velvet sofa with brass legs, designer armchair",
-                "large modular sofa, marble coffee table, luxury rug",
-                "dark wood console, sculptural decor objects, statement chair",
+                "charcoal sofa, black stone coffee table, chrome accents",
+                "gray velvet lounge chair, smoked glass side table",
+                "graphite cabinetry, minimal shelving, metal floor lamp"
             ],
             "walls": [
-                "dark charcoal walls with subtle texture",
-                "marble accent wall behind seating area",
-                "soft suede-like wall finish with warm tones",
+                "soft gray paint, low sheen",
+                "dark charcoal accent wall, matte",
+                "microcement gray wall with fine texture"
             ],
             "lighting": [
-                "warm golden ambient lighting, indirect glow",
-                "cinematic side lighting with strong contrast",
-                "luxury LED contour illumination, soft reflections",
+                "architectural grazing light, strong contrast",
+                "soft box-like ceiling wash, neutral temperature",
+                "accent spots highlighting art, dimmed"
             ],
             "camera": [
-                "architectural digest style angle, 35mm",
-                "wide cinematic framing 18mm",
-                "centered high-end composition, same camera position",
+                "35mm cinematic framing",
+                "32mm moody angled shot",
+                "30mm centered high-contrast view"
             ],
         },
     },
     {
-        "id": "art-deco",
-        "name": "Ар-деко",
-        "description": "Геометрия, насыщенные оттенки и гламурная роскошь",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "art deco interior design, geometric patterns, rich saturated colors, velvet furniture, brass details, glossy finishes, glamorous 1920s aesthetic, "
-            "photorealistic render, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls"
-        ),
+        "id": "soft-brutalism",
+        "name": "Софт-брутализм",
+        "description": "Архитектурный брутализм с мягкой подачей",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. soft brutalism interior, exposed concrete textures, solid architectural forms, minimal furniture with softened edges, neutral gray and warm stone tones, calm architectural atmosphere, soft diffused lighting",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "curved velvet sofa with brass legs, geometric side tables",
-                "luxury armchairs with gold accents, glossy coffee table",
-                "symmetrical seating arrangement, decorative console table",
+                "blocky sofa with rounded edges, concrete coffee table",
+                "leather lounge chair, stone side table, minimal shelving",
+                "low platform seating, metal accents, wool rug"
             ],
             "walls": [
-                "deep emerald green walls with gold lines",
-                "rich burgundy walls with geometric patterns",
-                "glossy neutral walls with brass inlays",
+                "light concrete texture, subtle formwork lines",
+                "smooth gray plaster with mineral look",
+                "concrete finish with warm undertone"
             ],
             "lighting": [
-                "warm glam chandelier lighting",
-                "spotlights with soft shadows, reflective highlights",
-                "gold wall sconces with warm glow",
+                "soft diffused wall washing",
+                "linear ceiling light with neutral tone",
+                "daylight with mild shadow, no harsh contrast"
             ],
             "camera": [
-                "symmetrical glamorous view, centered framing",
-                "wide-angle opulent framing 18mm",
-                "dramatic diagonal angle, same camera position",
+                "35mm architectural view",
+                "32mm angle emphasizing massing",
+                "30mm frontal shot, controlled perspective"
             ],
         },
     },
     {
-        "id": "mediterranean",
-        "name": "Средиземноморский",
-        "description": "Арки, штукатурка, терракота и солнечная атмосфера",
-        "base_prompt": (
-            "interior redesign of the same room using the input photo, keep original room layout and architecture, "
-            "do not change wall positions, do not move or add windows, do not move or add doors or passages, "
-            "preserve original window and door placement, preserve room proportions and geometry, same camera position and perspective, "
-            "mediterranean interior design, white stucco walls, arches, terracotta tiles, natural fabrics, warm coastal sunlight, "
-            "photorealistic warm southern atmosphere, strict structural preservation, layout locked, geometry locked"
-        ),
-        "negative_prompt": (
-            "extra windows, additional doors, new doorways, open archways, changed room layout, altered architecture, "
-            "hallway creation, room expansion, merged rooms, moved windows, moved doors, distorted geometry, broken proportions, "
-            "fisheye distortion, unrealistic perspective, duplicate openings, warped walls"
-        ),
+        "id": "modern-mediterranean",
+        "name": "Современный средиземноморский",
+        "description": "Современный средиземноморский стиль с солнечным настроением",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. modern mediterranean interior, limewashed walls, sandy tones, natural stone, linen textiles, sunlit atmosphere, warm southern mood",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
         "variants": {
             "furniture": [
-                "rustic wooden bench with linen cushions, natural decor",
-                "linen sofa with neutral pillows, wicker accents",
-                "wooden table, clay pots, woven textures",
+                "linen slipcover sofa, rustic wood coffee table, woven baskets",
+                "light wood dining set, ceramic vases, jute rug",
+                "rattan chair, stone side table, linen cushions"
             ],
             "walls": [
-                "white stucco walls with subtle texture",
-                "soft sand-colored plaster finish",
-                "arched niches with minimal decor",
+                "white limewash with gentle variation",
+                "soft sand-colored plaster",
+                "pale beige stucco, matte"
             ],
             "lighting": [
-                "bright warm coastal sunlight, soft shadows",
-                "soft afternoon golden light",
-                "gentle natural window shadows, warm atmosphere",
+                "warm coastal daylight, soft shadows",
+                "sheer curtains diffusing sun, golden tone",
+                "neutral recessed lights, low output"
             ],
             "camera": [
-                "wide mediterranean open view 18mm",
-                "centered coastal-inspired framing 35mm",
-                "warm corner angle, same camera position",
+                "35mm bright frontal view",
+                "32mm relaxed corner angle",
+                "30mm centered sunny composition"
+            ],
+        },
+    },
+    {
+        "id": "design-hotel",
+        "name": "Дизайн-отель",
+        "description": "Интерьер как в дизайнерском бутик-отеле",
+        "base_prompt": f"{GLOBAL_BASE_PROMPT}. design hotel interior, curated furniture, statement lighting, refined materials, neutral palette with accents, elegant hotel-like composition",
+        "negative_prompt": GLOBAL_NEGATIVE_PROMPT,
+        "variants": {
+            "furniture": [
+                "curated lounge chairs, marble coffee table, designer sofa",
+                "velvet seating, brass side tables, custom millwork",
+                "sculptural accent chair, stone console, layered textiles"
+            ],
+            "walls": [
+                "panelized wall with fabric insert, neutral tone",
+                "smooth taupe paint with art pieces",
+                "dark accent wall with integrated light strip"
+            ],
+            "lighting": [
+                "statement pendant, warm dim light",
+                "wall washers with soft highlights",
+                "table lamps with frosted glass, cozy glow"
+            ],
+            "camera": [
+                "35mm hotel lobby-style framing",
+                "32mm angle showcasing seating cluster",
+                "30mm centered boutique atmosphere"
             ],
         },
     },
@@ -381,15 +338,19 @@ def _pick_variant(style: Dict[str, object], key: str) -> Optional[str]:
     return random.choice(options)  # type: ignore[arg-type]
 
 
-def build_style_prompt(style_id: str) -> Tuple[Optional[str], Optional[Dict[str, Optional[str]]]]:
+def build_style_prompt(
+    style_id: str,
+    room_type: Optional[str] = None,
+    room_negative: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[str], Optional[Dict[str, Optional[str]]]]:
     """
     Собрать промпт для стиля с добавлением случайных вариаций по мебели, стенам, свету и камере.
-    Возвращает (prompt, meta) или (None, None), если стиль не найден.
+    Возвращает (positive_prompt, negative_prompt, meta) или (None, None, None), если стиль не найден.
     """
     style_id = style_id.lower()
     style = next((s for s in STYLE_CATALOG if s["id"] == style_id), None)
     if not style:
-        return None, None
+        return None, None, None
 
     furniture = _pick_variant(style, "furniture")
     walls = _pick_variant(style, "walls")
@@ -397,23 +358,30 @@ def build_style_prompt(style_id: str) -> Tuple[Optional[str], Optional[Dict[str,
     camera = _pick_variant(style, "camera")
 
     variant_parts = [
-        f"Furniture: {furniture}" if furniture else None,
-        f"Walls: {walls}" if walls else None,
-        f"Lighting: {lighting}" if lighting else None,
-        f"Camera: {camera}" if camera else None,
+        furniture,
+        walls,
+        lighting,
+        camera,
     ]
-    variant_text = ". ".join(part for part in variant_parts if part)
+    variant_text = ", ".join(part for part in variant_parts if part)
 
     base_prompt = style.get("base_prompt") or ""
     negative_prompt = style.get("negative_prompt") or ""
 
-    prompt_parts = [base_prompt]
+    positive_parts = []
+    if room_type:
+        positive_parts.append(
+            f"this image shows a {room_type}, keep only appropriate furniture for this {room_type}, no unrelated furniture"
+        )
+    positive_parts.append(base_prompt)
     if variant_text:
-        prompt_parts.append(variant_text)
-    if negative_prompt:
-        prompt_parts.append(f"Negative prompt: {negative_prompt}")
+        positive_parts.append(variant_text)
 
-    prompt = ". ".join(part for part in prompt_parts if part)
+    positive_prompt = ". ".join(part for part in positive_parts if part)
+
+    full_negative = negative_prompt
+    if room_negative:
+        full_negative = f"{negative_prompt}, {room_negative}" if negative_prompt else room_negative
 
     meta = {
         "style_id": style_id,
@@ -422,6 +390,7 @@ def build_style_prompt(style_id: str) -> Tuple[Optional[str], Optional[Dict[str,
         "walls": walls,
         "lighting": lighting,
         "camera": camera,
-        "negative_prompt": str(negative_prompt) if negative_prompt else None,
+        "negative_prompt": str(full_negative) if full_negative else None,
+        "room_type": room_type,
     }
-    return prompt, meta
+    return positive_prompt, full_negative, meta

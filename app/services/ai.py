@@ -35,7 +35,7 @@ def generate_image(
         # Формируем prompt если не передан
         style_meta: Optional[Dict[str, Optional[str]]] = None
 
-        style_prompt, style_meta = build_style_prompt(style.lower())
+        style_prompt, negative_prompt, style_meta = build_style_prompt(style.lower())
 
         if not prompt:
             base_prompt = (
