@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.core.styles_catalog import STYLE_IDS
+from app.services.generations import consume_generation
 from app.models.upload import Upload
 from app.models.user import User
 from app.workers.tasks import generate_image_task
@@ -61,6 +62,15 @@ def create_generate_task(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Неподдерживаемый стиль. Проверьте список в /styles",
+        )
+
+    # Проверка и списание генерации
+    try:
+        consume_generation(db, current_user, is_hd=False)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail=str(exc),
         )
 
     # Проверяем, что upload принадлежит пользователю (если указан)

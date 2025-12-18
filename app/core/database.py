@@ -79,6 +79,42 @@ def run_simple_migrations() -> None:
         ALTER TABLE uploads
         ADD COLUMN IF NOT EXISTS style VARCHAR(64)
         """,
+        """
+        CREATE TABLE IF NOT EXISTS generations (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            email VARCHAR(255) NOT NULL,
+            remaining_std INTEGER NOT NULL DEFAULT 1,
+            used_std INTEGER NOT NULL DEFAULT 0,
+            remaining_hd INTEGER NOT NULL DEFAULT 0,
+            used_hd INTEGER NOT NULL DEFAULT 0,
+            current_plan VARCHAR(64) NOT NULL DEFAULT 'free',
+            purchased_at TIMESTAMP WITHOUT TIME ZONE,
+            created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW()),
+            CONSTRAINT uq_generations_user_id UNIQUE (user_id),
+            CONSTRAINT uq_generations_email UNIQUE (email)
+        )
+        """,
+        """
+        ALTER TABLE generations
+        ADD COLUMN IF NOT EXISTS remaining_std INTEGER NOT NULL DEFAULT 1
+        """,
+        """
+        ALTER TABLE generations
+        ADD COLUMN IF NOT EXISTS used_std INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE generations
+        ADD COLUMN IF NOT EXISTS remaining_hd INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE generations
+        ADD COLUMN IF NOT EXISTS used_hd INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE generations
+        ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP WITHOUT TIME ZONE
+        """,
     ]
 
     with engine.begin() as conn:

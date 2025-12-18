@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, upload, generate, styles, download
+from app.api import auth, upload, generate, styles, download, billing
 from app.core.config import get_settings
 from app.core.database import Base, engine, run_simple_migrations
 
@@ -38,5 +38,6 @@ app.include_router(upload.router)
 app.include_router(generate.router)
 app.include_router(styles.router)
 app.include_router(download.router)
+app.include_router(billing.router)
 
 

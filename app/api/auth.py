@@ -18,6 +18,7 @@ from app.schemas.user import UserCreate, UserResponse
 from app.services.redis_client import get_redis
 from app.services.security import generate_token_with_expiry, hash_token
 from app.services.email import send_verification_email, send_reset_email
+from app.services.generations import get_or_create_balance
 
 
 class RefreshTokenRequest(BaseModel):
@@ -151,6 +152,9 @@ def register_user(
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    # Инициализируем баланс генераций (1 бесплатная)
+    get_or_create_balance(db, user)
 
     send_verification_email(user.email, token)
     return user
