@@ -80,6 +80,14 @@ def run_simple_migrations() -> None:
         ADD COLUMN IF NOT EXISTS style VARCHAR(64)
         """,
         """
+        ALTER TABLE uploads
+        ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP WITHOUT TIME ZONE
+        """,
+        """
+        ALTER TABLE uploads
+        ADD COLUMN IF NOT EXISTS days_left INTEGER
+        """,
+        """
         CREATE TABLE IF NOT EXISTS generations (
             id SERIAL PRIMARY KEY,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

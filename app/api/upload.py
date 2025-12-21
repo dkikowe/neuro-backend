@@ -1,7 +1,7 @@
 import re
 import uuid
 import io
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 import traceback
 
@@ -74,6 +74,8 @@ class UploadResponse(BaseModel):
     before: str = Field(..., description="Ссылка на исходную картинку")
     after: Optional[str] = Field(None, description="Ссылка на сгенерированную картинку, если есть")
     style: Optional[str] = Field(None, description="Стиль, примененный при генерации")
+    expires_at: Optional[datetime] = Field(None, description="Когда запись/файлы будут удалены")
+    days_left: Optional[int] = Field(None, description="Сколько дней осталось до удаления")
 
     class Config:
         populate_by_name = True
@@ -86,10 +88,38 @@ class UploadRecord(BaseModel):
     style: Optional[str]
     created_by: int
     created_at: datetime
+    expires_at: Optional[datetime]
+    days_left: Optional[int]
 
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+def _cleanup_expired_uploads(db: Session) -> None:
+    now = datetime.utcnow()
+    expired = (
+        db.query(Upload)
+        .filter(Upload.expires_at != None, Upload.expires_at < now)
+        .all()
+    )
+    for upload in expired:
+        for url in [upload.before_url, upload.after_url]:
+            if url:
+                try:
+                    delete_file_by_url(url)
+                except Exception as e:
+                    print(f"Failed to delete expired file {url} from S3: {e}")
+        db.delete(upload)
+    if expired:
+        db.commit()
+
+
+def _update_days_left(upload: Upload) -> None:
+    if upload.expires_at:
+        delta = upload.expires_at - datetime.utcnow()
+        days_left = max(0, int(delta.total_seconds() // 86400))
+        upload.days_left = days_left
 
 
 @router.post("/presign", response_model=PresignedUrlResponse)
@@ -216,6 +246,8 @@ async def upload_file(
             before_url=file_url,
             created_by=current_user.id,
         )
+        upload_record.set_expiry(30)
+        _update_days_left(upload_record)
         db.add(upload_record)
         db.commit()
         db.refresh(upload_record)
@@ -228,6 +260,8 @@ async def upload_file(
             before=upload_record.before_url,
             after=upload_record.after_url,
             style=upload_record.style,
+            expires_at=upload_record.expires_at,
+            days_left=upload_record.days_left,
         )
         
     except HTTPException:
@@ -262,12 +296,16 @@ def list_uploads(
     """
     Получить список аплоадов пользователя (последние сверху).
     """
+    _cleanup_expired_uploads(db)
     uploads = (
         db.query(Upload)
         .filter(Upload.created_by == current_user.id)
         .order_by(Upload.created_at.desc())
         .all()
     )
+    for u in uploads:
+        _update_days_left(u)
+    db.commit()
     return uploads
 
 

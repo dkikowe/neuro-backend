@@ -24,6 +24,7 @@ class GenerateRequest(BaseModel):
         None,
         description="ID сохраненного аплоада, чтобы записать after-изображение",
     )
+    is_hd: bool = Field(False, description="Запросить HD-генерацию (спишет HD-кредит)")
 
 
 class GenerateResponse(BaseModel):
@@ -66,7 +67,7 @@ def create_generate_task(
 
     # Проверка и списание генерации
     try:
-        consume_generation(db, current_user, is_hd=False)
+        consume_generation(db, current_user, is_hd=request.is_hd)
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
