@@ -12,7 +12,7 @@ from app.api.deps import get_current_user
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.models.payment import Payment
-from app.services.generations import purchase_plan
+from app.services.generations import purchase_plan, PACKAGE_CREDITS, SUBSCRIPTION_CREDITS
 from app.models.user import User
 
 
@@ -32,11 +32,14 @@ def _md5(value: str) -> str:
     return hashlib.md5(value.encode("utf-8")).hexdigest()
 
 
+ALLOWED_PLAN_IDS = set(PACKAGE_CREDITS.keys()) | set(SUBSCRIPTION_CREDITS.keys())
+
+
 class CreatePaymentRequest(BaseModel):
     order_id: int = Field(..., description="ID заказа (InvId)")
     amount: float = Field(..., description="Сумма платежа")
     description: str = Field(..., description="Описание платежа")
-    plan_id: Optional[str] = Field(None, description="План/пакет, который покупает пользователь")
+    plan_id: str = Field(..., description="План/пакет, который покупает пользователь")
 
 
 class CreatePaymentResponse(BaseModel):
@@ -53,6 +56,12 @@ def create_payment(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Robokassa не настроена",
+        )
+
+    if payload.plan_id.lower() not in ALLOWED_PLAN_IDS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неизвестный план/пакет",
         )
 
     out_sum = _format_amount(payload.amount)
@@ -107,6 +116,7 @@ def result_callback(
     out_sum_q: Optional[str] = Query(None),
     inv_id_q: Optional[str] = Query(None),
     signature_q: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
 ):
     if not settings.ROBOKASSA_PASSWORD_2:
         raise HTTPException(
@@ -134,7 +144,6 @@ def result_callback(
         )
 
     # Отмечаем заказ как оплаченный и начисляем план/пакет
-    db: Session = next(get_db())
     try:
         payment = db.query(Payment).filter(Payment.inv_id == int(inv_id)).first()
         if not payment:
@@ -150,10 +159,14 @@ def result_callback(
             if payment.plan_id:
                 user = db.query(User).filter(User.id == payment.user_id).first()
                 if user:
-                    purchase_plan(db, user, payment.plan_id)
+                    result = purchase_plan(db, user, payment.plan_id)
+                    if not result:
+                        raise HTTPException(
+                            status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Неизвестный план/пакет при начислении",
+                        )
             db.commit()
     except HTTPException:
-        db.close()
         raise
     except Exception as exc:
         db.rollback()
@@ -161,8 +174,6 @@ def result_callback(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Ошибка обработки результата платежа: {exc}",
         )
-    finally:
-        db.close()
 
     return f"OK{inv_id}"
 
