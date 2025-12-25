@@ -46,6 +46,12 @@ class Settings(BaseSettings):
     RESEND_API_KEY: Optional[str] = None
     RESEND_FROM: Optional[str] = None
 
+    # Robokassa
+    ROBOKASSA_LOGIN: Optional[str] = None
+    ROBOKASSA_PASSWORD_1: Optional[str] = None
+    ROBOKASSA_PASSWORD_2: Optional[str] = None
+    ROBOKASSA_IS_TEST: bool = False
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

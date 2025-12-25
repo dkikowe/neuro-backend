@@ -123,6 +123,20 @@ def run_simple_migrations() -> None:
         ALTER TABLE generations
         ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP WITHOUT TIME ZONE
         """,
+        """
+        CREATE TABLE IF NOT EXISTS payments (
+            id SERIAL PRIMARY KEY,
+            inv_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            plan_id VARCHAR(64),
+            amount NUMERIC(12, 2) NOT NULL,
+            description VARCHAR(512),
+            status VARCHAR(32) NOT NULL DEFAULT 'pending',
+            created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW()),
+            paid_at TIMESTAMP WITHOUT TIME ZONE,
+            CONSTRAINT uq_payments_inv_id UNIQUE (inv_id)
+        )
+        """,
     ]
 
     with engine.begin() as conn:

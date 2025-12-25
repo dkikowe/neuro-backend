@@ -104,6 +104,7 @@ def create_generate_task(
         style_id,
         request.upload_id,
         current_user.id,
+        request.is_hd,
     )
 
     return GenerateResponse(task_id=task.id)

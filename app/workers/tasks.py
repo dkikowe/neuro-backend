@@ -37,7 +37,14 @@ def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str
 
 
 @celery_app.task(bind=True, name="generate_image_task")
-def generate_image_task(self, image_url: str, style: str, upload_id: Optional[int] = None, user_id: Optional[int] = None) -> dict:
+def generate_image_task(
+    self,
+    image_url: str,
+    style: str,
+    upload_id: Optional[int] = None,
+    user_id: Optional[int] = None,
+    is_hd: bool = False,
+) -> dict:
     """
     Celery task to generate an image using AI API.
     
@@ -49,15 +56,23 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
         Dictionary with result_url or error message
     """
     try:
-        print(f"Starting image generation task: image_url={image_url}, style={style}")
+        print(f"Starting image generation task: image_url={image_url}, style={style}, is_hd={is_hd}")
         
-        # Generate image (synchronous call) — без HD/upscale на этом этапе
+        # Generate image (synchronous call)
         image_bytes, mime_type, style_meta = generate_image(image_url, style)
         
         if image_bytes is None:
             raise Exception("Failed to generate image: generate_image returned None")
         
         print(f"Image generated successfully, size: {len(image_bytes)} bytes")
+
+        # HD upscale if requested
+        if is_hd:
+            try:
+                image_bytes, mime_type = upscale_image_fast(image_bytes, output_format="webp")
+                print(f"HD upscale done, size: {len(image_bytes)} bytes, mime: {mime_type}")
+            except Exception as exc:
+                raise Exception(f"Не удалось выполнить HD-генерацию: {exc}")
         
         # Generate unique filename for result
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -96,6 +111,7 @@ def generate_image_task(self, image_url: str, style: str, upload_id: Optional[in
             "filename": result_filename,
             "style_id": style,
             "style_meta": style_meta,
+            "is_hd": is_hd,
         }
         
     except Exception as e:
