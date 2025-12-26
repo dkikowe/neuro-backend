@@ -186,18 +186,28 @@ def _process_result(
             if payment.plan_id:
                 user = db.query(User).filter(User.id == payment.user_id).first()
                 if user:
-                    result = purchase_plan(db, user, payment.plan_id)
+                    plan_lower = payment.plan_id.lower()
+                    result = purchase_plan(db, user, plan_lower)
                     if not result:
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Неизвестный план/пакет при начислении",
                         )
+                    # Лог для отладки начисления
+                    balance, added_std, added_hd = result
+                    print(
+                        f"[robokassa.result] inv_id={inv_id}, user_id={user.id}, plan={plan_lower}, "
+                        f"new_remaining_std={balance.remaining_std}, new_remaining_hd={balance.remaining_hd}, "
+                        f"added_std={added_std}, added_hd={added_hd}"
+                    )
                 else:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Пользователь не найден для начисления",
                     )
             db.commit()
+        else:
+            print(f"[robokassa.result] inv_id={inv_id} уже оплачен, статус не изменён")
     except HTTPException:
         raise
     except Exception as exc:
