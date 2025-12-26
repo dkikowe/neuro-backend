@@ -17,6 +17,8 @@ from app.models.user import User
 
 
 router = APIRouter(prefix="/robokassa", tags=["robokassa"])
+# Дополнительный роутер для обратной совместимости с путём /api/robokassa
+compat_router = APIRouter(prefix="/api/robokassa", tags=["robokassa"])
 
 settings = get_settings()
 
@@ -47,6 +49,7 @@ class CreatePaymentResponse(BaseModel):
 
 
 @router.post("/create-payment", response_model=CreatePaymentResponse)
+@compat_router.post("/create-payment", response_model=CreatePaymentResponse)
 def create_payment(
     payload: CreatePaymentRequest,
     current_user: User = Depends(get_current_user),
@@ -109,14 +112,38 @@ def create_payment(
 
 
 @router.post("/result")
+@compat_router.post("/result")
 def result_callback(
-    out_sum_form: Optional[str] = Form(None),
-    inv_id_form: Optional[str] = Form(None),
-    signature_form: Optional[str] = Form(None),
-    out_sum_q: Optional[str] = Query(None),
-    inv_id_q: Optional[str] = Query(None),
-    signature_q: Optional[str] = Query(None),
+    out_sum_form: Optional[str] = Form(None, alias="OutSum"),
+    inv_id_form: Optional[str] = Form(None, alias="InvId"),
+    signature_form: Optional[str] = Form(None, alias="SignatureValue"),
+    out_sum_q: Optional[str] = Query(None, alias="OutSum"),
+    inv_id_q: Optional[str] = Query(None, alias="InvId"),
+    signature_q: Optional[str] = Query(None, alias="SignatureValue"),
     db: Session = Depends(get_db),
+):
+    return _process_result(out_sum_form, inv_id_form, signature_form, out_sum_q, inv_id_q, signature_q, db)
+
+
+@router.get("/result")
+@compat_router.get("/result")
+def result_callback_get(
+    out_sum_q: Optional[str] = Query(None, alias="OutSum"),
+    inv_id_q: Optional[str] = Query(None, alias="InvId"),
+    signature_q: Optional[str] = Query(None, alias="SignatureValue"),
+    db: Session = Depends(get_db),
+):
+    return _process_result(None, None, None, out_sum_q, inv_id_q, signature_q, db)
+
+
+def _process_result(
+    out_sum_form: Optional[str],
+    inv_id_form: Optional[str],
+    signature_form: Optional[str],
+    out_sum_q: Optional[str],
+    inv_id_q: Optional[str],
+    signature_q: Optional[str],
+    db: Session,
 ):
     if not settings.ROBOKASSA_PASSWORD_2:
         raise HTTPException(
@@ -165,6 +192,11 @@ def result_callback(
                             status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Неизвестный план/пакет при начислении",
                         )
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Пользователь не найден для начисления",
+                    )
             db.commit()
     except HTTPException:
         raise

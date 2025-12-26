@@ -40,5 +40,6 @@ app.include_router(styles.router)
 app.include_router(download.router)
 app.include_router(billing.router)
 app.include_router(robokassa.router)
+app.include_router(robokassa.compat_router)
 
 

@@ -14,3 +14,4 @@ def get_redis() -> redis.Redis:
         decode_responses=True,
     )
 
+

@@ -21,3 +21,4 @@ class Payment(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     paid_at = Column(DateTime, nullable=True)
 
+

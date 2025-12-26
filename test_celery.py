@@ -73,3 +73,4 @@ if __name__ == "__main__":
         print("\n💡 Для тестирования задачи запустите:")
         print("  python test_celery.py --test-task")
 
+

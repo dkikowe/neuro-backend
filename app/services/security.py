@@ -18,3 +18,4 @@ def generate_token_with_expiry(minutes: int) -> Tuple[str, str, datetime]:
     expires_at = datetime.utcnow() + timedelta(minutes=minutes)
     return token, token_hash, expires_at
 
+

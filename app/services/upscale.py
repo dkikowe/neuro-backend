@@ -51,3 +51,4 @@ def upscale_image_fast(image_bytes: bytes, output_format: str = "webp") -> Tuple
         print(f"Upscale exception: {exc}")
         return image_bytes, f"image/{output_format}"
 
+
