@@ -9,6 +9,7 @@ from app.workers.celery_app import celery_app
 from app.services.ai import generate_image
 from app.services.s3 import upload_fileobj_to_s3, get_file_url
 from app.services.upscale import upscale_image_fast
+from app.models.style_stat import StyleStat
 
 
 def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str, style: Optional[str]) -> None:
@@ -32,6 +33,26 @@ def _update_upload_after(upload_id: int, user_id: Optional[int], result_url: str
     except Exception as exc:
         db.rollback()
         print(f"[generate_image_task] Failed to update upload {upload_id}: {exc}")
+    finally:
+        db.close()
+
+
+def _increment_style_stat(style: Optional[str]) -> None:
+    if not style:
+        return
+    db = SessionLocal()
+    try:
+        stat = db.query(StyleStat).filter(StyleStat.style_id == style).first()
+        if not stat:
+            stat = StyleStat(style_id=style, count=1)
+            db.add(stat)
+        else:
+            stat.count = (stat.count or 0) + 1
+            db.add(stat)
+        db.commit()
+    except Exception as exc:
+        db.rollback()
+        print(f"[style_stat] Failed to increment stat for {style}: {exc}")
     finally:
         db.close()
 
@@ -104,6 +125,7 @@ def generate_image_task(
 
         if upload_id:
             _update_upload_after(upload_id, user_id, result_url, style)
+        _increment_style_stat(style)
         
         return {
             "status": "success",

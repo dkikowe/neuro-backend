@@ -137,6 +137,12 @@ def run_simple_migrations() -> None:
             CONSTRAINT uq_payments_inv_id UNIQUE (inv_id)
         )
         """,
+        """
+        CREATE TABLE IF NOT EXISTS style_stats (
+            style_id VARCHAR(64) PRIMARY KEY,
+            count INTEGER NOT NULL DEFAULT 0
+        )
+        """,
     ]
 
     with engine.begin() as conn:

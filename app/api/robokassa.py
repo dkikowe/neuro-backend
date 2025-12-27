@@ -164,6 +164,11 @@ def _process_result(
     expected_str = f"{out_sum}:{inv_id}:{settings.ROBOKASSA_PASSWORD_2}"
     expected_sig = _md5(expected_str)
 
+    print(
+        f"[robokassa.result] incoming OutSum={out_sum}, InvId={inv_id}, "
+        f"SignatureValue={signature}, expected_sig={expected_sig}"
+    )
+
     if expected_sig.lower() != signature.lower():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
