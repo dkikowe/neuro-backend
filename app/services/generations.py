@@ -116,13 +116,14 @@ def purchase_plan(db: Session, user: User, plan_id: str) -> Optional[Tuple[Gener
         balance.remaining_hd = credits[1]
         balance.used_hd = 0
         balance.current_plan = plan_id
+        balance.package_plan_id = None
         balance.purchased_at = datetime.utcnow()
         balance.plan_expires_at = datetime.utcnow() + timedelta(days=30)
     else:
         # Разовые пакеты: просто добавляем к балансу (без срока)
         balance.remaining_std += credits[0]
         balance.remaining_hd += credits[1]
-        balance.current_plan = plan_id
+        balance.package_plan_id = plan_id
         balance.purchased_at = datetime.utcnow()
 
     db.add(balance)

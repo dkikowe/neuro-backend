@@ -124,6 +124,10 @@ def run_simple_migrations() -> None:
         ADD COLUMN IF NOT EXISTS plan_expires_at TIMESTAMP WITHOUT TIME ZONE
         """,
         """
+        ALTER TABLE generations
+        ADD COLUMN IF NOT EXISTS package_plan_id VARCHAR(64)
+        """,
+        """
         CREATE TABLE IF NOT EXISTS payments (
             id SERIAL PRIMARY KEY,
             inv_id INTEGER NOT NULL,

@@ -26,6 +26,7 @@ class BalanceResponse(BaseModel):
     remaining_hd: int
     used_hd: int
     current_plan: str
+    package_plan_id: Optional[str]
     purchased_at: Optional[datetime]
     plan_expires_at: Optional[datetime]
 
@@ -41,6 +42,7 @@ class PurchaseResponse(BaseModel):
     remaining_hd: int
     used_hd: int
     current_plan: str
+    package_plan_id: Optional[str]
     purchased_at: Optional[datetime]
     plan_expires_at: Optional[datetime]
     added_std: int
@@ -60,6 +62,7 @@ def get_balance(
         remaining_hd=balance.remaining_hd,
         used_hd=balance.used_hd,
         current_plan=balance.current_plan,
+        package_plan_id=balance.package_plan_id,
         purchased_at=balance.purchased_at,
         plan_expires_at=balance.plan_expires_at,
     )
@@ -86,6 +89,7 @@ def purchase(
         remaining_hd=balance.remaining_hd,
         used_hd=balance.used_hd,
         current_plan=balance.current_plan,
+        package_plan_id=balance.package_plan_id,
         purchased_at=balance.purchased_at,
         plan_expires_at=balance.plan_expires_at,
         added_std=added_std,

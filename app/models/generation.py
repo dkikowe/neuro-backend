@@ -19,7 +19,8 @@ class GenerationBalance(Base):
     used_std = Column(Integer, nullable=False, default=0)
     remaining_hd = Column(Integer, nullable=False, default=0)
     used_hd = Column(Integer, nullable=False, default=0)
-    current_plan = Column(String(64), nullable=False, default="free")
+    current_plan = Column(String(64), nullable=False, default="free")  # только подписка
+    package_plan_id = Column(String(64), nullable=True)  # последний разовый пакет
     purchased_at = Column(DateTime, default=datetime.utcnow, nullable=True)
     plan_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
