@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     APP_NAME: str = "AI Service API"
     APP_ENV: str = "production"
-    APP_URL: str = "https://interioeaihub.com"
+    APP_URL: str = "https://interioraihub.com"
 
     BACKEND_CORS_ORIGINS: str = "*"  # comma-separated list
 
